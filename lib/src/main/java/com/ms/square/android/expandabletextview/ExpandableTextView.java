@@ -17,6 +17,8 @@
 
 package com.ms.square.android.expandabletextview;
 
+import android.animation.Animator;
+import android.animation.ValueAnimator;
 import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.res.Resources;
@@ -29,6 +31,7 @@ import android.util.SparseBooleanArray;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.AccelerateDecelerateInterpolator;
 import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
 import android.view.animation.Transformation;
@@ -139,38 +142,93 @@ public class ExpandableTextView extends LinearLayout implements View.OnClickList
         // mark that the animation is in progress
         mAnimating = true;
 
-        Animation animation;
+//        Animation animation;
+//        if (mCollapsed) {
+//            animation = new ExpandCollapseAnimation(this, getHeight(), mCollapsedHeight);
+//        } else {
+//            animation = new ExpandCollapseAnimation(this, getHeight(), getHeight() +
+//                    mTextHeightWithMaxLines - mTv.getHeight());
+//        }
+
+        //Animation animation;
+        int finalHeight;
         if (mCollapsed) {
-            animation = new ExpandCollapseAnimation(this, getHeight(), mCollapsedHeight);
+            finalHeight = mCollapsedHeight;
         } else {
-            animation = new ExpandCollapseAnimation(this, getHeight(), getHeight() +
-                    mTextHeightWithMaxLines - mTv.getHeight());
+            finalHeight = getHeight() +
+                    mTextHeightWithMaxLines - mTv.getHeight();
         }
 
-        animation.setFillAfter(true);
-        animation.setAnimationListener(new Animation.AnimationListener() {
+        animateExpandView(this, getHeight(), finalHeight);
+
+//        animation.setFillAfter(true);
+//        animation.setAnimationListener(new Animation.AnimationListener() {
+//            @Override
+//            public void onAnimationStart(Animation animation) {
+//                applyAlphaAnimation(mTv, mAnimAlphaStart);
+//            }
+//            @Override
+//            public void onAnimationEnd(Animation animation) {
+//                // clear animation here to avoid repeated applyTransformation() calls
+//                clearAnimation();
+//                // clear the animation flag
+//                mAnimating = false;
+//
+//                // notify the listener
+//                if (mListener != null) {
+//                    mListener.onExpandStateChanged(mTv, !mCollapsed);
+//                }
+//            }
+//            @Override
+//            public void onAnimationRepeat(Animation animation) { }
+//        });
+//
+//        clearAnimation();
+//        startAnimation(animation);
+    }
+
+    private void animateExpandView(final View mTargetView, int mStartHeight, int mEndHeight) {
+        mAnimating = true;
+        ValueAnimator animator = ValueAnimator.ofInt(mStartHeight, mEndHeight);
+        animator.setInterpolator(new AccelerateDecelerateInterpolator());
+        animator.setDuration(mAnimationDuration);
+        animator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
             @Override
-            public void onAnimationStart(Animation animation) {
+            public void onAnimationUpdate(ValueAnimator animation) {
+                final int newHeight = (int) animation.getAnimatedValue();
+                mTv.setMaxHeight(newHeight - mMarginBetweenTxtAndBottom);
+                mTargetView.getLayoutParams().height = newHeight;
+                mTargetView.requestLayout();
+            }
+        });
+        animator.addListener(new Animator.AnimatorListener() {
+            @Override
+            public void onAnimationStart(Animator animation) {
                 applyAlphaAnimation(mTv, mAnimAlphaStart);
             }
+
             @Override
-            public void onAnimationEnd(Animation animation) {
-                // clear animation here to avoid repeated applyTransformation() calls
+            public void onAnimationEnd(Animator animation) {
                 clearAnimation();
                 // clear the animation flag
                 mAnimating = false;
-
                 // notify the listener
                 if (mListener != null) {
                     mListener.onExpandStateChanged(mTv, !mCollapsed);
                 }
             }
-            @Override
-            public void onAnimationRepeat(Animation animation) { }
-        });
 
-        clearAnimation();
-        startAnimation(animation);
+            @Override
+            public void onAnimationCancel(Animator animation) {
+
+            }
+
+            @Override
+            public void onAnimationRepeat(Animator animation) {
+
+            }
+        });
+        animator.start();
     }
 
     @Override
