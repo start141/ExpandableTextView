@@ -210,9 +210,9 @@ public class ExpandableTextView extends LinearLayout implements View.OnClickList
         animator.addListener(new Animator.AnimatorListener() {
             @Override
             public void onAnimationStart(Animator animation) {
-                if (Float.compare(mAnimAlphaStart, 1.0f) != 0) {
-                    applyAlphaAnimation(mTv, mAnimAlphaStart);
-                }
+//                if (Float.compare(mAnimAlphaStart, 1.0f) != 0) {
+//                    applyAlphaAnimation(mTv, mAnimAlphaStart);
+//                }
             }
 
             @Override
@@ -437,39 +437,39 @@ public class ExpandableTextView extends LinearLayout implements View.OnClickList
         return expandIndicatorController;
     }
 
-    class ExpandCollapseAnimation extends Animation {
-        private final View mTargetView;
-        private final int mStartHeight;
-        private final int mEndHeight;
-
-        public ExpandCollapseAnimation(View view, int startHeight, int endHeight) {
-            mTargetView = view;
-            mStartHeight = startHeight;
-            mEndHeight = endHeight;
-            setDuration(mAnimationDuration);
-        }
-
-        @Override
-        protected void applyTransformation(float interpolatedTime, Transformation t) {
-            final int newHeight = (int) ((mEndHeight - mStartHeight) * interpolatedTime + mStartHeight);
-            mTv.setMaxHeight(newHeight - mMarginBetweenTxtAndBottom);
-            if (Float.compare(mAnimAlphaStart, 1.0f) != 0) {
-                applyAlphaAnimation(mTv, mAnimAlphaStart + interpolatedTime * (1.0f - mAnimAlphaStart));
-            }
-            mTargetView.getLayoutParams().height = newHeight;
-            mTargetView.requestLayout();
-        }
-
-        @Override
-        public void initialize(int width, int height, int parentWidth, int parentHeight) {
-            super.initialize(width, height, parentWidth, parentHeight);
-        }
-
-        @Override
-        public boolean willChangeBounds() {
-            return true;
-        }
-    }
+//    class ExpandCollapseAnimation extends Animation {
+//        private final View mTargetView;
+//        private final int mStartHeight;
+//        private final int mEndHeight;
+//
+//        public ExpandCollapseAnimation(View view, int startHeight, int endHeight) {
+//            mTargetView = view;
+//            mStartHeight = startHeight;
+//            mEndHeight = endHeight;
+//            setDuration(mAnimationDuration);
+//        }
+//
+//        @Override
+//        protected void applyTransformation(float interpolatedTime, Transformation t) {
+//            final int newHeight = (int) ((mEndHeight - mStartHeight) * interpolatedTime + mStartHeight);
+//            mTv.setMaxHeight(newHeight - mMarginBetweenTxtAndBottom);
+//            if (Float.compare(mAnimAlphaStart, 1.0f) != 0) {
+//                applyAlphaAnimation(mTv, mAnimAlphaStart + interpolatedTime * (1.0f - mAnimAlphaStart));
+//            }
+//            mTargetView.getLayoutParams().height = newHeight;
+//            mTargetView.requestLayout();
+//        }
+//
+//        @Override
+//        public void initialize(int width, int height, int parentWidth, int parentHeight) {
+//            super.initialize(width, height, parentWidth, parentHeight);
+//        }
+//
+//        @Override
+//        public boolean willChangeBounds() {
+//            return true;
+//        }
+//    }
 
     public interface OnExpandStateChangeListener {
         /**
