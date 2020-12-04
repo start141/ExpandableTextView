@@ -44,6 +44,8 @@ import androidx.annotation.IdRes;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
+import java.util.HashMap;
+
 
 public class ExpandableTextView extends LinearLayout implements View.OnClickListener {
 
@@ -62,7 +64,8 @@ public class ExpandableTextView extends LinearLayout implements View.OnClickList
     private static final int DEFAULT_ANIM_DURATION = 300;
 
     /* The default alpha value when the animation starts */
-    private static final float DEFAULT_ANIM_ALPHA_START = 0.7f;
+//    private static final float DEFAULT_ANIM_ALPHA_START = 0.7f;
+    private static final float DEFAULT_ANIM_ALPHA_START = 1.0f;
 
     protected TextView mTv;
 
@@ -100,8 +103,10 @@ public class ExpandableTextView extends LinearLayout implements View.OnClickList
     private OnExpandStateChangeListener mListener;
 
     /* For saving collapsed status when used in ListView */
-    private SparseBooleanArray mCollapsedStatus;
-    private int mPosition;
+//    private SparseBooleanArray mCollapsedStatus;
+//    private int mPosition;
+    private HashMap<String, Boolean> mCollapsedStatus;
+    private String mKey;
 
     public ExpandableTextView(Context context) {
         this(context, null);
@@ -119,8 +124,8 @@ public class ExpandableTextView extends LinearLayout implements View.OnClickList
     }
 
     @Override
-    public void setOrientation(int orientation){
-        if(LinearLayout.HORIZONTAL == orientation){
+    public void setOrientation(int orientation) {
+        if (LinearLayout.HORIZONTAL == orientation) {
             throw new IllegalArgumentException("ExpandableTextView only supports Vertical Orientation.");
         }
         super.setOrientation(orientation);
@@ -136,7 +141,8 @@ public class ExpandableTextView extends LinearLayout implements View.OnClickList
         mExpandIndicatorController.changeState(mCollapsed);
 
         if (mCollapsedStatus != null) {
-            mCollapsedStatus.put(mPosition, mCollapsed);
+//            mCollapsedStatus.put(mPosition, mCollapsed);
+            mCollapsedStatus.put(mKey, mCollapsed);
         }
 
         // mark that the animation is in progress
@@ -204,7 +210,9 @@ public class ExpandableTextView extends LinearLayout implements View.OnClickList
         animator.addListener(new Animator.AnimatorListener() {
             @Override
             public void onAnimationStart(Animator animation) {
-                applyAlphaAnimation(mTv, mAnimAlphaStart);
+                if (Float.compare(mAnimAlphaStart, 1.0f) != 0) {
+                    applyAlphaAnimation(mTv, mAnimAlphaStart);
+                }
             }
 
             @Override
@@ -305,10 +313,18 @@ public class ExpandableTextView extends LinearLayout implements View.OnClickList
         requestLayout();
     }
 
-    public void setText(@Nullable CharSequence text, @NonNull SparseBooleanArray collapsedStatus, int position) {
+    //    public void setText(@Nullable CharSequence text, @NonNull SparseBooleanArray collapsedStatus, int position) {
+    public void setText(@Nullable CharSequence text, @NonNull HashMap<String, Boolean> collapsedStatus, String key) {
         mCollapsedStatus = collapsedStatus;
-        mPosition = position;
-        boolean isCollapsed = collapsedStatus.get(position, true);
+//        mPosition = position;
+        mKey = key;
+//        boolean isCollapsed = collapsedStatus.get(position, true);
+        boolean isCollapsed;
+        if (collapsedStatus.containsKey(key)) {
+            isCollapsed = collapsedStatus.get(key);
+        } else {
+            isCollapsed = true;
+        }
         clearAnimation();
         mCollapsed = isCollapsed;
         mExpandIndicatorController.changeState(mCollapsed);
@@ -435,7 +451,7 @@ public class ExpandableTextView extends LinearLayout implements View.OnClickList
 
         @Override
         protected void applyTransformation(float interpolatedTime, Transformation t) {
-            final int newHeight = (int)((mEndHeight - mStartHeight) * interpolatedTime + mStartHeight);
+            final int newHeight = (int) ((mEndHeight - mStartHeight) * interpolatedTime + mStartHeight);
             mTv.setMaxHeight(newHeight - mMarginBetweenTxtAndBottom);
             if (Float.compare(mAnimAlphaStart, 1.0f) != 0) {
                 applyAlphaAnimation(mTv, mAnimAlphaStart + interpolatedTime * (1.0f - mAnimAlphaStart));
@@ -445,12 +461,12 @@ public class ExpandableTextView extends LinearLayout implements View.OnClickList
         }
 
         @Override
-        public void initialize( int width, int height, int parentWidth, int parentHeight ) {
+        public void initialize(int width, int height, int parentWidth, int parentHeight) {
             super.initialize(width, height, parentWidth, parentHeight);
         }
 
         @Override
-        public boolean willChangeBounds( ) {
+        public boolean willChangeBounds() {
             return true;
         }
     }
@@ -459,7 +475,7 @@ public class ExpandableTextView extends LinearLayout implements View.OnClickList
         /**
          * Called when the expand/collapse animation has been finished
          *
-         * @param textView - TextView being expanded/collapsed
+         * @param textView   - TextView being expanded/collapsed
          * @param isExpanded - true if the TextView has been expanded
          */
         void onExpandStateChanged(TextView textView, boolean isExpanded);
