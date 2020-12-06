@@ -27,14 +27,11 @@ import android.graphics.drawable.Drawable;
 import android.os.Build;
 import android.text.TextUtils;
 import android.util.AttributeSet;
-import android.util.SparseBooleanArray;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.AccelerateDecelerateInterpolator;
 import android.view.animation.AlphaAnimation;
-import android.view.animation.Animation;
-import android.view.animation.Transformation;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -274,8 +271,8 @@ public class ExpandableTextView extends LinearLayout implements View.OnClickList
             return;
         }
 
-        // Saves the text height w/ max lines
-        mTextHeightWithMaxLines = getRealTextViewHeight(mTv);
+//        // Saves the text height w/ max lines
+//        mTextHeightWithMaxLines = getRealTextViewHeight(mTv);
 
         // Doesn't fit in collapsed mode. Collapse text view as needed. Show
         // button.
@@ -287,17 +284,28 @@ public class ExpandableTextView extends LinearLayout implements View.OnClickList
         // Re-measure with new setup
         super.onMeasure(widthMeasureSpec, heightMeasureSpec);
 
-        if (mCollapsed) {
-            // Gets the margin between the TextView's bottom and the ViewGroup's bottom
-            mTv.post(new Runnable() {
-                @Override
-                public void run() {
-                    mMarginBetweenTxtAndBottom = getHeight() - mTv.getHeight();
-                }
-            });
-            // Saves the collapsed height of this ViewGroup
-            mCollapsedHeight = getMeasuredHeight();
-        }
+        // Solution for "Text is not completely shown in Expanded State (Height Calculation Issue)"
+        // https://github.com/Manabu-GT/ExpandableTextView/issues/75
+        mTextHeightWithMaxLines = getRealTextViewHeight(mTv, mTv.getLineCount());
+
+        // if (mCollapsed) 这个判断会导致在RecyclerView中使用时，因为layout复用的原因，
+        // 展开状态下的layout可能从未进入过 if (mCollapsed) 条件代码块，
+        // 导致mMarginBetweenTxtAndBottom和mCollapsedHeight没有被初始化
+//        if (mCollapsed) {
+        // Gets the margin between the TextView's bottom and the ViewGroup's bottom
+        mTv.post(new Runnable() {
+            @Override
+            public void run() {
+                mMarginBetweenTxtAndBottom = getHeight() - mTv.getHeight();
+                // mCollapsedHeight采用getRealTextViewHeight方式计算，
+                // 避免使用mTv.setMaxLines随后getMeasuredHeight方式获取，以免引起再次重绘
+                mCollapsedHeight = getRealTextViewHeight(mTv, mMaxCollapsedLines)
+                        + mMarginBetweenTxtAndBottom;
+            }
+        });
+//            // Saves the collapsed height of this ViewGroup
+//            mCollapsedHeight = getMeasuredHeight();
+//        }
     }
 
     public void setOnExpandStateChangeListener(@Nullable OnExpandStateChangeListener listener) {
@@ -403,8 +411,8 @@ public class ExpandableTextView extends LinearLayout implements View.OnClickList
         }
     }
 
-    private static int getRealTextViewHeight(@NonNull TextView textView) {
-        int textHeight = textView.getLayout().getLineTop(textView.getLineCount());
+    private static int getRealTextViewHeight(@NonNull TextView textView, int lineCount) {
+        int textHeight = textView.getLayout().getLineTop(lineCount);
         int padding = textView.getCompoundPaddingTop() + textView.getCompoundPaddingBottom();
         return textHeight + padding;
     }
