@@ -436,7 +436,10 @@ public class ExpandableTextView extends LinearLayout implements View.OnClickList
             case EXPAND_INDICATOR_TEXT_VIEW:
                 String expandText = typedArray.getString(R.styleable.ExpandableTextView_expandIndicator);
                 String collapseText = typedArray.getString(R.styleable.ExpandableTextView_collapseIndicator);
-                expandIndicatorController = new TextViewExpandController(expandText, collapseText);
+                Drawable expandTextDrawableStart = typedArray.getDrawable(R.styleable.ExpandableTextView_expandTextDrawableStart);
+                Drawable collapseTextDrawableStart = typedArray.getDrawable(R.styleable.ExpandableTextView_collapseTextDrawableStart);
+                expandIndicatorController = new TextViewExpandController(
+                        expandText, collapseText, expandTextDrawableStart, collapseTextDrawableStart);
                 break;
             default:
                 throw new IllegalStateException("Must be of enum: ExpandableTextView_expandToggleType, one of EXPAND_INDICATOR_IMAGE_BUTTON or EXPAND_INDICATOR_TEXT_VIEW.");
@@ -522,17 +525,29 @@ public class ExpandableTextView extends LinearLayout implements View.OnClickList
 
         private final String mExpandText;
         private final String mCollapseText;
+        private final Drawable mExpandTextDrawableStart;
+        private final Drawable mCollapseTextDrawableStart;
 
         private TextView mTextView;
 
-        public TextViewExpandController(String expandText, String collapseText) {
+        public TextViewExpandController(
+                String expandText, String collapseText,
+                Drawable expandTextDrawableStart, Drawable collapseTextDrawableStart) {
             mExpandText = expandText;
             mCollapseText = collapseText;
+            mExpandTextDrawableStart = expandTextDrawableStart;
+            mCollapseTextDrawableStart = collapseTextDrawableStart;
         }
 
         @Override
         public void changeState(boolean collapsed) {
             mTextView.setText(collapsed ? mExpandText : mCollapseText);
+            mTextView.setCompoundDrawablesRelativeWithIntrinsicBounds(
+                    collapsed ? mExpandTextDrawableStart : mCollapseTextDrawableStart,
+                    null,
+                    null,
+                    null
+            );
         }
 
         @Override

@@ -6,6 +6,8 @@
         <attr name="animAlphaStart" format="float"/>
         <attr name="expandIndicator" format="reference"/>
         <attr name="collapseIndicator" format="reference"/>
+        <attr name="expandTextDrawableStart" format="reference"/>
+        <attr name="collapseTextDrawableStart" format="reference"/>
         <attr name="expandToggleType" format="enum">
             <enum name="ImageButton" value="0"/>
             <enum name="TextView" value="1"/>
